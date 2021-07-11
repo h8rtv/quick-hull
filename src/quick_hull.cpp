@@ -1,8 +1,11 @@
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <list>
 #include <cmath>
 #include <limits>
+#include <string>
+#include <chrono>
 
 #define INF std::numeric_limits<int>::max()
 
@@ -124,7 +127,7 @@ void print_points(const std::list<Point2D>& points) {
 	}
 }
 
-void quick_hull(const std::list<Point2D>& points, std::list<Point2D>& hull, Line line) {
+void quick_hull_rec(const std::list<Point2D>& points, std::list<Point2D>& hull, Line line) {
 	std::list<Point2D> new_points;
 
 	// Para cada ponto no fecho, verificar se está a esquerda da reta
@@ -151,11 +154,22 @@ void quick_hull(const std::list<Point2D>& points, std::list<Point2D>& hull, Line
 	Line secondLine = std::make_pair(farthest, line.second);
 
 	// Repetir o loop
-	quick_hull(new_points, hull, firstLine);
+	quick_hull_rec(new_points, hull, firstLine);
 
 	hull.push_back(farthest);
 
-	quick_hull(new_points, hull, secondLine);
+	quick_hull_rec(new_points, hull, secondLine);
+}
+
+std::list<Point2D> quick_hull(std::list<Point2D> points) {
+	// Pegar os pontos extremos, formando uma reta
+	Line line = get_extreme_points(points);
+	std::list<Point2D> hull { line.first };
+	quick_hull_rec(points, hull, line);
+	hull.push_back(line.second);
+	quick_hull_rec(points, hull, reverse_line(line));
+
+	return hull;
 }
 
 int main(int argc, char* argv[]) {
@@ -167,14 +181,19 @@ int main(int argc, char* argv[]) {
 	std::string filename = argv[1];
 	std::list<Point2D> points = read_input(filename);
 
-	// Pegar os pontos extremos, formando uma reta
-	Line line = get_extreme_points(points);
-	std::list<Point2D> hull { line.first };
-	quick_hull(points, hull, line);
-	hull.push_back(line.second);
-	quick_hull(points, hull, reverse_line(line));
+	// Tempo do início do algoritmo
+	auto start = std::chrono::system_clock::now();
+
+	std::list<Point2D> hull = quick_hull(points);
+
+	// Tempo do fim do algoritmo
+	auto end = std::chrono::system_clock::now();
 
 	write_output("fecho.txt", hull);
+
+	std::chrono::duration<double> elapsed_time = end - start;
+	std::cout << std::fixed << std::setprecision(6);
+	std::cout << elapsed_time.count() << std::endl;
 
 	return 0;
 }
