@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <fstream>
 #include <list>
+#include <vector>
 #include <cmath>
 #include <limits>
 #include <string>
@@ -38,11 +39,13 @@ typedef const std::pair<Point2D, Point2D> Line;
  * filename: std::string, nome do arquivo que contém os pontos de entrada
  * Retorna uma lista encadeada com pontos bidimensionais
  */
-std::list<Point2D> read_input(std::string filename) {
-	std::list<Point2D> points;
+std::vector<Point2D> read_input(std::string filename) {
+	std::vector<Point2D> points;
 	std::ifstream file(filename);
 	std::string line;
 	std::getline(file, line);
+	size_t capacity = stoi(line);
+	points.reserve(capacity);
 	while (std::getline(file, line)) {
 		std::size_t index = line.find(' ');
 		int x = stoi(line.substr(0, index));
@@ -55,7 +58,7 @@ std::list<Point2D> read_input(std::string filename) {
 }
 
 Line reverse_line(Line line) {
-	return std::make_pair(line.second, line.first);
+	return Line(line.second, line.first);
 }
 
 /* write_output
@@ -78,7 +81,7 @@ void write_output(std::string filename, const std::list<Point2D>& hull) {
  * points: std::list<Point2D>, pontos que estao dentro do fecho
  * Retorna dois pontos que formam uma linha que atravessa o fecho inteiro
  */
-Line get_extreme_points(const std::list<Point2D>& points) {
+Line get_extreme_points(const std::vector<Point2D>& points) {
 	Point2D start(INF); // Começo da reta, ponto mais a esquerda
 	Point2D end(-INF); // Começo da reta, ponto mais a direita
 	for (const Point2D& i : points) {
@@ -88,7 +91,7 @@ Line get_extreme_points(const std::list<Point2D>& points) {
 			end = i;
 	}
 
-	return std::make_pair(start, end);
+	return Line(start, end);
 }
 
 /* left
@@ -99,8 +102,8 @@ Line get_extreme_points(const std::list<Point2D>& points) {
  * 0 caso o p3 esteja a DIREITA ou seja COLINEAR da reta line
  */
 int left(Line line, const Point2D& p3) {
-	Point2D p1 = line.first;
-	Point2D p2 = line.second;
+	const Point2D& p1 = line.first;
+	const Point2D& p2 = line.second;
     int area = (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
 
 	return area > 0;
@@ -112,8 +115,8 @@ int left(Line line, const Point2D& p3) {
  * Retorna a distancia entre uma reta (indicada por line) e um ponto (p3)
  */
 float get_point_distance_from_line(Line line, const Point2D& p3) {
-	Point2D p1 = line.first;
-	Point2D p2 = line.second;
+	const Point2D& p1 = line.first;
+	const Point2D& p2 = line.second;
     int num = std::abs((p2.x - p1.x) * (p1.y - p3.y) - (p1.x - p3.x) * (p2.y - p1.y));
     int dem = (p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y);
 
@@ -127,8 +130,10 @@ void print_points(const std::list<Point2D>& points) {
 	}
 }
 
-void quick_hull_rec(const std::list<Point2D>& points, std::list<Point2D>& hull, Line line) {
-	std::list<Point2D> new_points;
+void quick_hull_rec(const std::vector<Point2D>& points, std::list<Point2D>& hull, Line line) {
+	std::vector<Point2D> new_points;
+	size_t capacity = points.size() / 2;
+	new_points.reserve(capacity);
 
 	// Para cada ponto no fecho, verificar se está a esquerda da reta
 	for (const Point2D& i : points) {
@@ -150,8 +155,8 @@ void quick_hull_rec(const std::list<Point2D>& points, std::list<Point2D>& hull, 
 	}
 
 	// Formar duas retas que ligam até o ponto mais longe
-	Line firstLine = std::make_pair(line.first, farthest);
-	Line secondLine = std::make_pair(farthest, line.second);
+	Line firstLine = Line(line.first, farthest);
+	Line secondLine = Line(farthest, line.second);
 
 	// Repetir o loop
 	quick_hull_rec(new_points, hull, firstLine);
@@ -161,7 +166,7 @@ void quick_hull_rec(const std::list<Point2D>& points, std::list<Point2D>& hull, 
 	quick_hull_rec(new_points, hull, secondLine);
 }
 
-std::list<Point2D> quick_hull(std::list<Point2D> points) {
+std::list<Point2D> quick_hull(std::vector<Point2D> points) {
 	// Pegar os pontos extremos, formando uma reta
 	Line line = get_extreme_points(points);
 	std::list<Point2D> hull { line.first };
@@ -179,7 +184,7 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 	std::string filename = argv[1];
-	std::list<Point2D> points = read_input(filename);
+	std::vector<Point2D> points = read_input(filename);
 
 	// Tempo do início do algoritmo
 	auto start = std::chrono::system_clock::now();

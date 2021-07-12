@@ -8,7 +8,7 @@ clean:
 	rm -rf hull *.txt *.pdf
 
 genpoints:
-	scripts/genpoints 1000
+	scripts/genpoints 1048575
 
 view:
 	scripts/visualizar.sh
