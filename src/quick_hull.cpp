@@ -166,7 +166,7 @@ void quick_hull_rec(const std::vector<Point2D>& points, std::list<Point2D>& hull
 	quick_hull_rec(new_points, hull, secondLine);
 }
 
-std::list<Point2D> quick_hull(std::vector<Point2D> points) {
+std::list<Point2D> quick_hull(const std::vector<Point2D>& points) {
 	// Pegar os pontos extremos, formando uma reta
 	Line line = get_extreme_points(points);
 	std::list<Point2D> hull { line.first };
