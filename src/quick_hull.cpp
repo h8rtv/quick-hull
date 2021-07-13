@@ -10,8 +10,8 @@
 
 #define INF std::numeric_limits<int>::max()
 
-/* 
-    
+/*
+
 */
 class Point2D {
 public:
@@ -135,24 +135,23 @@ void quick_hull_rec(const std::vector<Point2D>& points, std::list<Point2D>& hull
 	size_t capacity = points.size() / 2;
 	new_points.reserve(capacity);
 
-	// Para cada ponto no fecho, verificar se está a esquerda da reta
+	// Para cada ponto no fecho, verificar os que estão a esquerda da reta
+	// e verificar o que estiver mais longe
+	Point2D farthest;
+	float longest_distance = -INF;
 	for (const Point2D& i : points) {
-		if (left(line, i))
+		if (left(line, i)) {
 			new_points.push_back(i);
+
+			float distance = get_point_distance_from_line(line, i);
+			if (distance > longest_distance) {
+				longest_distance = distance;
+				farthest = i;
+			}
+		}
 	}
 	if (new_points.size() == 0)
 		return;
-
-	// Para todos pontos a esquerda da reta, verificar o que estiver mais longe
-	Point2D farthest;
-	float longest_distance = -INF;
-	for (const Point2D& i : new_points) {
-		float distance = get_point_distance_from_line(line, i);
-		if (distance > longest_distance) {
-			longest_distance = distance;
-			farthest = i;
-		}
-	}
 
 	// Formar duas retas que ligam até o ponto mais longe
 	Line firstLine = Line(line.first, farthest);
