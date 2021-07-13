@@ -98,10 +98,10 @@ Line get_extreme_points(const std::vector<Point2D>& points) {
  * line: Line, par de Point2D representando uma reta
  * p3: Point2D, ponto para verificar a posicao
  * Retorna a posicao entre uma reta (indicada por line) e um ponto (p3)
- * 1 caso o p3 esteja a ESQUERDA da reta line
- * 0 caso o p3 esteja a DIREITA ou seja COLINEAR da reta line
+ * 1(true) caso o p3 esteja a ESQUERDA da reta line
+ * 0(false) caso o p3 esteja a DIREITA ou seja COLINEAR da reta line
  */
-int left(Line line, const Point2D& p3) {
+bool left(Line line, const Point2D& p3) {
 	const Point2D& p1 = line.first;
 	const Point2D& p2 = line.second;
     int area = (p2.x - p1.x) * (p3.y - p1.y) - (p2.y - p1.y) * (p3.x - p1.x);
