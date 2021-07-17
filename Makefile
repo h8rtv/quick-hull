@@ -1,8 +1,7 @@
 GCC = g++
-FLAGS =-Wall -Wextra -Werror -pedantic -g
 
 all:
-	$(GCC) src/quick_hull.cpp -o hull $(FLAGS)
+	$(GCC) src/quick_hull.cpp -o hull
 
 clean:
 	rm -rf hull *.txt *.pdf
