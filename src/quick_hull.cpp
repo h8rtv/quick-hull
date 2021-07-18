@@ -1,3 +1,8 @@
+/* Autores:
+ * Heitor Tonel Ventura - 2086883
+ * José Henrique Ivanchechen - 2090341
+ */
+
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -46,6 +51,22 @@ public:
  * de dois Point2D.
  */
 typedef const std::pair<Point2D, Point2D> Line;
+
+/* Escolha das estruturas de dados:
+ * Para a representação do fecho convexo, foi determinado que uma lista encadeada melhor
+ * se adequa ao algoritmo pois é necessário realizar leituras sequenciais e o tamanho final
+ * do fecho não pode ser determinado antes do algoritmo executar. Por isso, foi utilizada a
+ * estrutura std::list<Point2D> fornecida pela STL do C++.
+ * 
+ * Para a representação dos pontos a serem analisados, bem como os subvetores utilizados na
+ * execução da função quick_hull_rec, foi determinado que uma lista sequencial obterá a melhor
+ * performance. O problema de usar uma lista encadeada é a quantidade de chamadas de alocação
+ * dinâmica que serão feitas, principalmente na criação dos subvetores para a limitação
+ * de espaço para as recursões profundas. Portanto a estrutura utilizada foi o
+ * std::vector<Point2D> fornecida pelo STL do C++.
+ * Foi utilizado também a função reserve para alocar a capacidade ideal e estimada dos vetores
+ * e subvetores necessários.
+ */
 
 /* read_input
  * filename: std::string, nome do arquivo que contém os pontos de entrada
@@ -242,7 +263,11 @@ bool left(Line& line, const Point2D& p3) {
  * Portanto a função é limitada pela complexidade constante O(1).
  * 
  * - Corretude:
- * TODO
+ * O algoritmo funciona com base na fórmula de cálculo da distância de um ponto
+ * e uma reta representada por dois pontos.
+    (|(p2.x - p1.x) * (p1.y - p3.y) - (p1.x - p3.x) * (p2.y - p1.y)|)
+	/ 
+    ((p2.x - p1.x)^2 + (p2.y - p1.y)^2)
  */
 float get_point_distance_from_line(Line& line, const Point2D& p3) {
 	const Point2D& p1 = line.first;
@@ -277,7 +302,7 @@ void print_points(const std::list<Point2D>& points) {
 
 /* quick_hull_rec
  * points: vector<Point2D>&, vetor contendo os pontos a serem analisados na recursão do quick_hull
- * hull: list<Point2D>&, lista contento os pontos que determinam o fecho inteiro, em ordem anti-horária.
+ * hull: list<Point2D>&, lista contendo os pontos que determinam o fecho inteiro, em ordem anti-horária.
  * line: Line, linha representando um limite do triângulo dos pontos dentro do fecho.
  *
  * - Análise de complexidade:
@@ -305,9 +330,11 @@ void print_points(const std::list<Point2D>& points) {
  * a análise será dividida em melhor caso, pior caso e caso médio.
  * 
  * - Melhor Caso:
- * Para o melhor caso, temos o algoritmo eliminando metade dos pontos em cada recursão, ou seja,
- * cada recusão analisará metade dos pontos da recursão anterior, mantendo assim uma árvore de recursão
- * balanceada com altura igual a lg(n). Um exemplo dessa árvore é:
+ * Para o melhor caso, temos o algoritmo analisando metade dos pontos em cada recursão, ou seja,
+ * cada recusão olhará metade dos pontos da recursão anterior, mantendo assim uma árvore de recursão
+ * balanceada com altura igual a lg(n). O algoritmo se torna muito rápido quando o número de pontos é muito
+ * maior que o número de pontos que pertencem ao fecho, pois esses serão eliminados da análise.
+ * Um exemplo da árvore de recorrência é:
  * 
  *   				       T(n)
  * 				       /          \
@@ -326,6 +353,7 @@ void print_points(const std::list<Point2D>& points) {
  * Percebe-se que b^d = a, portanto temos o caso 2 do teorema mestre simplificado, que diz:
  * Tb(n) = O(n^d * log_b(n))
  * Logo, para o melhor caso, Tb(n) = O(n * lg(n))
+ * 
  * 
  * - Pior Caso:
  * Para o pior caso, temos o algoritmo removendo apenas um ponto por recursão. Isso ocorre quando
@@ -374,7 +402,49 @@ void print_points(const std::list<Point2D>& points) {
  *
  * Ta(n) = 2Ta(n/2) + O(n)
  * 
- * TODO: Pensar caso médio
+ * Caso médio:
+ * No caso médio, assume-se uma distribuição uniforme de pontos no espaço analisado.
+ * Percebe-se uma probabilidade maior do ponto não pertencer ao fecho do que ele pertencer.
+ * É observado também que uma árvore de recorrência desbalanceada, onde somente uma chamada
+ * recursiva se desenvolve tendo que analisar todos os pontos da recursão anterior, também é
+ * rara.
+ * Portanto é assumido que o caso médio ocorre quando a árvore resultante é razoavelmente
+ * balanceada e o conjunto do fecho é consideravelmente menor que o conjunto de pontos de entrada.
+ * 
+ * Utilizando uma árvore particionada de maneira constante, podemos entender como árvores quase
+ * balanceadas são O(n * lgN) também. Dada a seguinte relação de recorrência:
+ * 
+ * Ta(n) = Ta(n / t) + Ta(fn/t) + O(n)
+ * Onde f < t e f + 1 = t
+ * 
+ * Desenvolvendo a árvore
+ *                                                          Custo por nível
+ *   				           T(n)                              = cn
+ * 				       /                 \
+ *      		   T(n/t)              T(fn/t)                   = cn
+ * 			      /     \	            /     \
+ *           T(n/t^2)  T(fn/t^2)   T(fn/t^2)  T(n * f^2 / t^2)   = cn
+ *             /  \    /  \           /  \       /  \
+ *           ... ... ... ...        ... ...     ... ...          = cn 
+ *            |  ... ... ...        ... ...     ... ...          = cn
+ *           T(1)... ... ...        ... ...     ... ...          = cn
+ *                                  ... ...     ... ...         <= cn
+ *	                                            ... ...         <= cn
+ *			                                        T(1)        <= cn
+ * 
+ * Percebe-se que a altura da árvore(h) é igual a log_(t/f)(n) // log base t/f de n
+ * Também, é observado que o custo por nível (Cn) é sempre <= cn.
+ * 
+ * O custo total da árvore será limitado superiormente por h * Cn. Logo,
+ * O(h * Cn) = O(log_(t/f)(n)*cn) = O(N * lgN)
+ * 
+ * Sabendo que árvores constantemente particionadas tem complexidade no tempo O(N * lgN),
+ * e percebendo que as árvores quase balanceadas terão características similares,
+ * pode-se concluir que o comportamento médio esperado do algoritmo será parecido com o caso
+ * ótimo da execução do algoritmo, sendo esse também O(N * lgN).
+ *
+ * - Corretude:
+ * Explicada em detalhes na função quick_hull.
  */
 void quick_hull_rec(const std::vector<Point2D>& points, std::list<Point2D>& hull, Line& line) {
 	// Vetor com os novos pontos que serão analisados na próxima chamada recursiva
@@ -382,7 +452,7 @@ void quick_hull_rec(const std::vector<Point2D>& points, std::list<Point2D>& hull
 
 	// Estimativa de capacidade do vetor dos pontos a serem analisados pelas próximas iterações.
 	// Utilizado para reduzir número de alocações dinâmicas usando listas encadeadas.
-	size_t capacity = points.size() / 1.25;
+	size_t capacity = points.size() / 2;
 	new_points.reserve(capacity);
 
 	// Para cada ponto no fecho, verifica os que estão a esquerda da reta, em seguida
@@ -412,9 +482,12 @@ void quick_hull_rec(const std::vector<Point2D>& points, std::list<Point2D>& hull
 	Line firstLine = Line(line.first, farthest);
 	Line secondLine = Line(farthest, line.second);
 
-	// Realiza a chamada recursiva
+	// Realiza as chamadas recursivas, passando o conjunto de pontos de entrada e saída,
+	// bem como a linha que fará a divisão entre pontos da esquerda e direita.
 	quick_hull_rec(new_points, hull, firstLine);
 
+	// Adiciona o ponto mais longe encontrado, uma vez que ele é necessário para
+	// completar os pontos dentro do fecho convexo em ordem anti-horária.
 	hull.push_back(farthest);
 
 	quick_hull_rec(new_points, hull, secondLine);
@@ -422,7 +495,7 @@ void quick_hull_rec(const std::vector<Point2D>& points, std::list<Point2D>& hull
 
 /* quick_hull
  * points: const vector<Point2D>&, vetor contendo os pontos a ser executado o algoritmo de quick_hull
- * Retorna uma nova lista contento os pontos que determinam o fecho, em ordem anti-horária.
+ * Retorna uma nova lista contendo os pontos que determinam o fecho convexo, em ordem anti-horária.
  * 
  * - Análise de complexidade:
  * - A linha X executa a função get_extreme_points, que é de ordem linear, portanto O(N).
@@ -435,26 +508,82 @@ void quick_hull_rec(const std::vector<Point2D>& points, std::list<Point2D>& hull
  * 
  * Corretude do algoritmo:
  * 
- * - Lema 1:
+ * Podemos definir fecho convexo como a menor região convexa que contém os pontos do conjunto.
+ * Essa região é formada a partir dos pontos extremos do conjunto de pontos de entrada.
+ * Com base nisso, pode-se concluir a seguinte afirmação:
+ * 
  * Dado um conjunto de pontos P e uma reta R, podemos dizer que todo ponto
  * pertencente a P que é o mais distante da reta R em relação a alguma direção
  * ortogonal de R, faz parte do fecho convexo de P.
- * Prova: TODO
- *	
+ *  
  * Com base no Lema 1, observamos que a etapa inicial de divisão encontra dois
  * pontos (A e B) pertencentes ao fecho, bem como uma reta AB.
  * Pode se aplicar o lema 1 novamente com a reta resultante dos pontos extremos
  * encontrados, com isso
  * TODO
+ * 
+ * 1) Provar que os pontos mais a esquerda(E) e mais a direita(D)
+ * fazem parte do fecho convexo.
+ * Assumir que E não faz parte do fecho implica em E estar contido dentro
+ * da área formada pelo fecho.
+ * Logo, deverá existir um ponto mais a esquerda de E para formar um fecho
+ * que contenha E.
+ * Isso contradiz nossa suposição inicial de que E é o ponto mais a esquerda,
+ * e portanto, por contradição, conclui-se que E faz parte do fecho.
+ * Prova análoga para o ponto mais a direita(D).
+ * 
+ * 2) Provar que os pontos adicionados fazem parte do fecho convexo
+ * Utilizando a definição de fecho convexo, podemos concluir que todos os pontos
+ * encontrados com a maior distância entre retas formadas por pontos que fazem
+ * parte do fecho
+ * 
+ * Podemos provar o funcionamento da parte recursiva do algoritmo usando laço invariante.
+ * 
+ * Hipótese:
+ * Para todo subvetor de pontos analisados, o algoritmo irá adicionar os pontos que formam 
+ * o fecho convexo a esquerda da reta base.
+ * Para toda sublista "hull" conterá os pontos do fecho convexo, em ordem
+ * anti-horária.
+ * 
+ * Inicialização:
+ * O caso base se dá na primeira recursão, onde é recebido um conjunto de pontos e uma reta base
+ * formada pelos pontos extremos dentro do conjunto de pontos incial.
+ * Este faz parte do fecho pela prova 1.
+ * 
+ * Manutenção:
+ * A cada recursão, os pontos recebidos são analisados e adicionados a um subvetor auxiliar que
+ * contém somente os pontos a esquerda da reta recebida e também é encontrado o ponto mais distante
+ * da reta formada pela recursão anterior.
+ * 
+ * Término:
+ * TODO 
+ * Começamos adicionando o ponto mais a esquerda do conjunto.
+ * Após isso, é feita a primeira chamada recursiva, que irá executar outra recursão
+ * sempre no conjunto de pontos a esquerda. Portanto, o próximo ponto a ser adicionado
+ * será o segundo a esquerda.
+ * Após isso, a recursão irá executar no conjunto de pontos a direita do último ponto adicionado,
+ * sendo esse o terceiro a esquerda. Isso se repete, adicion
  */
 std::list<Point2D> quick_hull(const std::vector<Point2D>& points) {
-	// Pegar os pontos extremos, formando uma reta
+	// Retorna os pontos extremos dentro do conjunto de pontos inicial
+	// com base no eixo X, ou seja, forma uma linha com o menor e maior X
+	// presente dentro de points
 	Line line = get_extreme_points(points);
 	
+	// Declara a lista que conterá os pontos do fecho convexo calculado pelo
+	// algoritmo recursivo. Ele começa contendo o primeiro ponto encontrado pelo get_extreme_points,
+	// uma vez que o ponto mais a esquerda também faz parte do fecho convexo e é o primeiro
+	// na ordem anti-horária.
 	std::list<Point2D> hull { line.first };
 	
+	// Realiza as chamadas recursivas, passando o conjunto de pontos de entrada e saída,
+	// bem como a linha que fará a divisão entre pontos da esquerda e direita.
 	quick_hull_rec(points, hull, line);
+	
+	// Adiciona o segundo ponto extremo encontrado, uma vez que ele é necessário para
+	// completar os pontos dentro do fecho convexo em ordem anti-horária.
 	hull.push_back(line.second);
+	
 	quick_hull_rec(points, hull, reverse_line(line));
 
 	return hull;
