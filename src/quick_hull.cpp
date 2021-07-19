@@ -182,15 +182,17 @@ void write_output(std::string filename, const std::list<Point2D>& hull) {
  * |Pa| é zero, e portanto os pontos start e end contém valores padrões
  * que representam sua inexistência no momento.
  * 
- * Pa = P[0:0]
+ * Pa = []
  * S = não existe
  * E = não existe
  * 
  * Manutenção:
  * Ao fim da iteração do laço da linha X, percebe-se que o start e o end contém os
- * os pontos com o x, respectivamente mais a esquerda e direita dos pontos já iterados(Pa).
+ * os pontos com o x, respectivamente mais a esquerda e direita dos pontos já iterados(Pa),
+ * pois somente se alteram se o ponto da iteração for mais a esquerda ou mais a direita que
+ * start ou end.
  * 
- * Pa = P[0:i]
+ * Pa = P[1:i]
  * S = ponto com menor x de Pa
  * E = ponto com maior x de Pa
  * 
@@ -198,7 +200,7 @@ void write_output(std::string filename, const std::list<Point2D>& hull) {
  * Após os fim do loop, os pontos atribuidos a start e end contém os pontos extremos do vetor
  * de pontos total.
  * 
- * Pa = P[0:N]
+ * Pa = P[1:N]
  * S = ponto com menor x de P
  * E = ponto com maior x de P
  * 
@@ -300,10 +302,148 @@ void print_points(const std::list<Point2D>& points) {
 	}
 }
 
+/* get_farthest_point
+ * points: std::list<Point2D>&, lista encadeada de pontos a ser analisado
+ * line: Line, representando uma reta que dividirá os pontos a ser analisado
+ * Retorna: o ponto mais longe da reta dentro do vetor de points
+ * 
+ * - Análise de complexidade:
+ * - As linhas X e X executam em tempo constante. O(1)
+ * - A linha X executa N + 1 vezes, sendo N o tamanho da lista. Tem complexidade O(N).
+ * - A linha X chama uma função que é de complexidade constante O(1), porém 
+ * está dentro do loop com complexidade O(N).
+ * - Da linha X até X, são executadas dentro do loop com complexidade O(N).
+ * - A linha X que retorna o valor é de complexidade constante O(1).
+ * 
+ * A função é limitada pela complexidade linear O(N).
+ * 
+ * Corretude:
+ * 
+ * Prova por loop invariante:
+ * 
+ * Invariante de loop: O ponto farthest conterá o ponto com maior distância com base
+ * no subvetor de pontos analisado e a reta recebida.
+ * 
+ * Inicialização:
+ * |Pa| é zero, e portanto o ponto mais distante não existirá.
+ * 
+ * Pa = []
+ * F = não existe
+ * LD = não existe
+ * 
+ * Manutenção:
+ * Ao fim da iteração do laço da linha X, percebe-se que o ponto F contém
+ * o ponto mais longe dentro do subvetor analisado e LD contém sua distância
+ * a partir da reta line, porque o ponto e a distância só serão alterados caso
+ * o ponto da iteração tenha distância da reta recebida maior que LD.
+ * 
+ * Pa = P[1:i]
+ * F = ponto com maior distância de Pa
+ * LD = maior distância de Pa
+ * 
+ * Término:
+ * Após os fim do loop, farthest será o ponto mais distante de P, junto com o a distância
+ * armazenada em longest_distance.
+ * 
+ * Pa = P[1:N]
+ * F = ponto com maior distância de P com base na reta recebida
+ * LD = maior distância de P com base na reta recebida
+ * 
+ * Portanto, o ponto retornado no fim do algoritmo representa o ponto que possui a maior
+ * distância dentro do conjunto de pontos recebido com base na reta também recebida.
+ */
+Point2D get_farthest_point(const std::vector<Point2D>& points, Line line) {
+	Point2D farthest;
+	float longest_distance = -INF;
+	for (const Point2D& i : points) {
+		// Realiza a verificação para pegar o ponto mais distante da linha
+		// esse ponto será utilizado para formar a nova linha representando um limite do triângulo dos pontos dentro do fecho
+		float distance = get_point_distance_from_line(line, i);
+		if (distance > longest_distance) {
+			longest_distance = distance;
+			farthest = i;
+		}
+	}
+
+	return farthest;
+}
+
+/* get_left_points
+ * points: const std::vector<Point2D>&, vetor de pontos a serem analisados
+ * line: Line, representando uma reta que dividirá os pontos
+ * Retorna: os pontos a esquerda da reta recebida
+ * 
+ * - Análise de complexidade:
+ * - A linhas X e X executam em tempo constante. O(1)
+ * - A linha X executa 1 vez, mas sua complexidade é linear em função da capacity enviada.
+ * Portanto tem complexidade da ordem O(N)
+ * - A linha X executa N + 1 vezes, sendo N o tamanho da lista. Tem complexidade O(N).
+ * - A linha X chama uma função que é de complexidade constante O(1), como está dentro 
+ * de um loop com complexidade O(N).
+ * - A linha X que retorna o valor é de complexidade constante O(1).
+ * 
+ * A função é limitada pela complexidade linear O(N).
+ * 
+ * Corretude:
+ * 
+ * Prova por loop invariante:
+ * 
+ * Invariante de loop: O vetor new_points conterá os pontos dentro do subvetor de pontos analisado
+ * que estão a esquerda da reta line.
+ * 
+ * Inicialização:
+ * |Pa| é zero, com isso não há pontos a esquerda.
+ * 
+ * Pa = []
+ * NP = []
+ * 
+ * Manutenção:
+ * Ao fim da iteração do laço da linha X, new_points conterá os pontos dentro de points 
+ * que estão a esquerda da reta line recebida, pois caso o ponto da iteração esteja a esquerda
+ * da reta line, este será adicionado no vetor new_points.
+ * 
+ * Pa = P[1:i]
+ * NP = vetor de pontos de Pa que estão a esquerda da reta line
+ * 
+ * Término:
+ * Após os fim do loop, o vetor new_points conterá os pontos de points que estão a esquerda da
+ * reta line.
+ * 
+ * Pa = P[1:N]
+ * NP = vetor de pontos de P que estão a esquerda da reta line
+ * 
+ * Portanto, o vetor retornado no fim do algoritmo conterá os pontos dentro de points
+ * que estão a esquerda da reta line.
+ */
+std::vector<Point2D> get_left_points(const std::vector<Point2D>& points, Line line) {
+	// Vetor com os novos pontos que serão retornados
+	std::vector<Point2D> new_points;
+
+	// Estimativa de capacidade do vetor dos pontos a serem analisados pelas próximas iterações.
+	// Utilizado para reduzir número de alocações dinâmicas usando listas encadeadas.
+	size_t capacity = points.size() / 2;
+	new_points.reserve(capacity);
+
+	for (const Point2D& i : points) {
+		// Se o ponto a ser verificado estiver a "esquerda" da linha
+		if (left(line, i)) {
+			new_points.push_back(i); // Adiciona o ponto no novo vetor que será analisado na próxima recursão
+		}
+	}
+
+	return new_points;
+}
+
 /* quick_hull_rec
  * points: vector<Point2D>&, vetor contendo os pontos a serem analisados na recursão do quick_hull
  * hull: list<Point2D>&, lista contendo os pontos que determinam o fecho inteiro, em ordem anti-horária.
  * line: Line, linha representando um limite do triângulo dos pontos dentro do fecho.
+ * 
+ * A função adiciona na lista encadeada hull os pontos extremos a esquerda da reta line informada, de modo
+ * a manter a ordem anti-horária do fecho convexo.
+ * A ordem anti-horária é estabelecida uma vez que o algoritmo realiza a procura pelos pontos de forma análoga
+ * a varredura de árvore binária  E - R - D. Só será adicionado um ponto uma vez que todos os outros pontos 
+ * a esquerda deste já estejam sido adicionados na lista hull.
  *
  * - Análise de complexidade:
  * Como essa função é recursiva, devemos encontrar uma relação de recorrência representado o custo da árvore
@@ -311,17 +451,11 @@ void print_points(const std::list<Point2D>& points) {
  * 
  * Analisando a junção e separação da divisão e conquista, temos:
  * 
- * - As linhas X e X executam em tempo constante. O(1)
- * - A linha X executa 1 vez, mas sua complexidade é linear em função da capacity enviada.
- * Portanto tem complexidade da ordem O(N)
- * - As linhas X e X executam em tempo constante, pois apenas alocam variáveis. O(1)
- * - A linha X será executada N + 1 vezes, dependendo do número de pontos recebidos dentro de points,
- * logo, terá complexidade O(N).
- * - A linha X chama uma função que é de complexidade constante O(1).
- * - Da linha X até X, são executadas funções de complexidade constante O(1).
+ * - A linha X realiza uma chamada de função de complexidade O(N).
  * - A linha X executa uma comparação de tempo constante O(1).
- * - As linhas X e X criam objetos, que é de tempo constante O(1).
- * - As linhas X e X realizam a chamada recursiva, que será melhor analisado posteriormente.
+ * - A linha X realiza a chamada de uma função com complexidade O(N).
+ * - As linhas X e X executam em tempo constante, pois apenas alocam variáveis. O(1)
+ * - As linhas X e X realizam a chamada recursiva, que será melhor analisado posteriormente. O(N * lg(N))
  * - A linha X adiciona ao vetor, que é de custo constante O(1).
  * 
  * Portanto, como custo de cada recursão, temos complexidade O(N).
@@ -444,41 +578,79 @@ void print_points(const std::list<Point2D>& points) {
  * ótimo da execução do algoritmo, sendo esse também O(N * lgN).
  *
  * - Corretude:
- * Explicada em detalhes na função quick_hull.
+ * 
+ * Pode-se definir fecho convexo como a menor região convexa que contém os pontos do conjunto.
+ * A região convexa é uma região onde, para todo segmento de reta formado por um par de pontos contido na região,
+ * este segmento não conterá nenhum ponto externo a região.
+ * Essa região é formada a partir dos pontos extremos do conjunto de pontos de entrada.
+ * Um ponto extremo é um ponto que não se encontra em nenhum segmento de reta que une dois pontos quaisquer
+ * dentro da região formada pelo fecho convexo.
+ *
+ * Para provar a corretude do algoritmo, deve-se provar que um ponto da entrada mais distante de uma reta r
+ * em uma direção ortogonal é um ponto extremo, que o quick_hull_rec adiciona pontos extremos à lista encadeada do fecho
+ * e seleciona todos os pontos extremos contidos na entrada.
+ * 
+ * 1) Provar que o ponto mais distante de uma reta R em uma direção ortogonal é um ponto extremo.
+ * 
+ * Dado uma reta r, o ponto mais distante P dela em uma direção (por exemplo, a esquerda dela) é considerado um ponto extremo.
+ * A prova é dada pelo fato de que caso não seja um ponto extremo, haverá um segmento de reta de P a um ponto interno do fecho
+ * que cruzará com as bordas do fecho convexo. 
+ * 
+ * 2) Provar que dado um triângulo formado por três pontos extremos, todo ponto contido na região formada por ele não poderá
+ * ser um ponto extremo.
+ * 
+ * Prova por contradição:
+ * P, conjunto de pontos analisados
+ * Pe, conjunto de pontos extremos de P formando um fecho convexo
+ * Pontos A, B e C pertencem a Pe e formam um triângulo T
+ * 
+ * Assume-se um ponto D que está contido na região de T e seja um ponto extremo.
+ * Logo, haverá uma conexão de algum dos pontos A, B ou C até D. Como A, B e C formam um triângulo, percebe-se que 
+ * ao adicionar o ponto D, uma concavidade será adicionada na região do fecho pois existirá um segmento de reta que
+ * contém algum ponto fora da região, contradizendo a premissa de que o fecho Pe é convexo.
+ * Portanto, D não pode ser um ponto extremo.
+ * 
+ * 3) Provar que os pontos adicionados pelo quick_hull_rec fazem parte do fecho convexo e que todos os pontos de
+ * do vetor de pontos são analisados.
+ *
+ * Hipóteses/Invariantes:
+ * a) Os pontos que formam a reta recebida na função recursiva fazem parte do fecho convexo.
+ * b) Os pontos a esquerda da reta recebida serão corretamente classificados em pontos extremos, descartados ou reanalisados.
+ *
+ * Passo Base:
+ * Se o conjunto de pontos a ser analisado for vazio, então nenhum ponto será adicionado ao fecho convexo.
+ *
+ * Passo Indutivo:
+ * Para cada recursão, get_left_points irá selecionar os pontos a esquerda dado uma reta r e armazenará dentro de um vetor
+ * chamado de new_points. Após isso, será selecionado o ponto de new_points mais distante da reta recebida.
+ * Com base em (1), pode-se afirmar que esse ponto encontrado, farthest, é um ponto extremo. Logo faz parte 
+ * do fecho convexo.
+ * Após isso, são criadas duas linhas auxiliares que formam um triângulo com a linha recebida da recursão.
+ * Com base em (2), percebe-se que os pontos que precisarão ser analisados estarão ou a esquerda da reta firstLine
+ * ou a esquerda da reta secondLine e os outros pontos não poderão ser pontos extremos.
+ * Por fim, a recursão é chamada com as nova linhas (firstLine e secondLine) e com somente os pontos a esquerda new_points.
+ * Com isso, (a) se mantém, pois as retas são criadas a partir de pontos que são pontos extremos.
+ * Também, todos os pontos recebidos na função serão analisados, sendo um classificado como extremo, dois subconjuntos de
+ * pontos que estão a esquerda das novas retas que serão reanalisados e dois subconjuntos de pontos a serem descartados
+ * pois estão a direita ou colineares as retas. Isso mantém a hipótese (b).
+ * 
+ * Término:
+ * Todos os pontos da recursão inicial da função são analisados e são ou desconsiderados por estarem a direita/colinear de
+ * alguma reta formada ou são pontos extremos.
+ *
  */
 void quick_hull_rec(const std::vector<Point2D>& points, std::list<Point2D>& hull, Line& line) {
-	// Vetor com os novos pontos que serão analisados na próxima chamada recursiva
-	std::vector<Point2D> new_points;
-
-	// Estimativa de capacidade do vetor dos pontos a serem analisados pelas próximas iterações.
-	// Utilizado para reduzir número de alocações dinâmicas usando listas encadeadas.
-	size_t capacity = points.size() / 2;
-	new_points.reserve(capacity);
-
-	// Para cada ponto no fecho, verifica os que estão a esquerda da reta, em seguida
-	// verifica o que estiver mais longe a partir da reta "base"
-	Point2D farthest;
-	float longest_distance = -INF;
-	for (const Point2D& i : points) {
-		// Se o ponto a ser verificado estiver a "esquerda" da linha
-		if (left(line, i)) {
-			new_points.push_back(i); // Adiciona o ponto no novo vetor que será analisado na próxima recursão
-			
-			// Realiza a verificação para pegar o ponto mais distante da linha
-			// esse ponto será utilizado para formar a nova linha representando um limite do triângulo dos pontos dentro do fecho
-			float distance = get_point_distance_from_line(line, i);
-			if (distance > longest_distance) {
-				longest_distance = distance;
-				farthest = i;
-			}
-		}
-	}
+	// Extrai uma lista de pontos que estão a esquerda de points com base na reta line
+	std::vector<Point2D> new_points = get_left_points(points, line);
 	
 	// Se não há nenhum ponto restante a ser analisado, não prossegue com a recursão
 	if (new_points.size() == 0)
 		return;
 
-	// É formado duas retas que ligam da reta analisada até o ponto mais longe
+	// Retorna o ponto mais a esquerda dentro de new_points com base na reta line
+	Point2D farthest = get_farthest_point(new_points, line);
+
+	// Forma duas retas que ligam da reta analisada até o ponto mais longe
 	Line firstLine = Line(line.first, farthest);
 	Line secondLine = Line(farthest, line.second);
 
@@ -506,63 +678,24 @@ void quick_hull_rec(const std::vector<Point2D>& points, std::list<Point2D>& hull
  * Como a chamada recursiva é o maior custo da função, a complexidade dela será a mesma da chamada
  * recursiva, sendo essa O(N * lgN) ou O(N^2) 
  * 
- * Corretude do algoritmo:
+ * - Corretude:
  * 
- * Podemos definir fecho convexo como a menor região convexa que contém os pontos do conjunto.
- * Essa região é formada a partir dos pontos extremos do conjunto de pontos de entrada.
- * Com base nisso, pode-se concluir a seguinte afirmação:
- * 
- * Dado um conjunto de pontos P e uma reta R, podemos dizer que todo ponto
- * pertencente a P que é o mais distante da reta R em relação a alguma direção
- * ortogonal de R, faz parte do fecho convexo de P.
- *  
- * Com base no Lema 1, observamos que a etapa inicial de divisão encontra dois
- * pontos (A e B) pertencentes ao fecho, bem como uma reta AB.
- * Pode se aplicar o lema 1 novamente com a reta resultante dos pontos extremos
- * encontrados, com isso
- * TODO
- * 
- * 1) Provar que os pontos mais a esquerda(E) e mais a direita(D)
+ * Para provar a corretude do algoritmo, deve-se provar que os pontos com menor e maior valores no eixo X
  * fazem parte do fecho convexo.
- * Assumir que E não faz parte do fecho implica em E estar contido dentro
- * da área formada pelo fecho.
- * Logo, deverá existir um ponto mais a esquerda de E para formar um fecho
- * que contenha E.
- * Isso contradiz nossa suposição inicial de que E é o ponto mais a esquerda,
- * e portanto, por contradição, conclui-se que E faz parte do fecho.
- * Prova análoga para o ponto mais a direita(D).
  * 
- * 2) Provar que os pontos adicionados fazem parte do fecho convexo
- * Utilizando a definição de fecho convexo, podemos concluir que todos os pontos
- * encontrados com a maior distância entre retas formadas por pontos que fazem
- * parte do fecho
+ * 1) Provar que os pontos mais a esquerda(E) e mais a direita(D), ou seja, os pontos com menor e maior
+ * valor no eixo X respectivamente, fazem parte do fecho convexo.
  * 
- * Podemos provar o funcionamento da parte recursiva do algoritmo usando laço invariante.
+ * Como E está mais a esquerda do conjunto de pontos, significa que não é possível que exita algum segmento de 
+ * reta interno a região formada pelo fecho convexo que contenha E, pois caso exista, esta irá cruzar com a borda
+ * do fecho convexo.
+ * Por causa disso, E deve estar contido no conjunto de pontos que formam o fecho convexo.
  * 
- * Hipótese:
- * Para todo subvetor de pontos analisados, o algoritmo irá adicionar os pontos que formam 
- * o fecho convexo a esquerda da reta base.
- * Para toda sublista "hull" conterá os pontos do fecho convexo, em ordem
- * anti-horária.
+ * Prova análoga ao ponto com maior valor no eixo X (D).
  * 
- * Inicialização:
- * O caso base se dá na primeira recursão, onde é recebido um conjunto de pontos e uma reta base
- * formada pelos pontos extremos dentro do conjunto de pontos incial.
- * Este faz parte do fecho pela prova 1.
- * 
- * Manutenção:
- * A cada recursão, os pontos recebidos são analisados e adicionados a um subvetor auxiliar que
- * contém somente os pontos a esquerda da reta recebida e também é encontrado o ponto mais distante
- * da reta formada pela recursão anterior.
- * 
- * Término:
- * TODO 
- * Começamos adicionando o ponto mais a esquerda do conjunto.
- * Após isso, é feita a primeira chamada recursiva, que irá executar outra recursão
- * sempre no conjunto de pontos a esquerda. Portanto, o próximo ponto a ser adicionado
- * será o segundo a esquerda.
- * Após isso, a recursão irá executar no conjunto de pontos a direita do último ponto adicionado,
- * sendo esse o terceiro a esquerda. Isso se repete, adicion
+ * O restante do funcionamento do algoritmo se baseia em duas chamadas de quick_hull_rec, em que analisará os pontos a
+ * esquerda da reta formada pelos pontos mais a esquerda e mais a direita e os pontos a esquerda da reta direcionada
+ * reversa a esta.
  */
 std::list<Point2D> quick_hull(const std::vector<Point2D>& points) {
 	// Retorna os pontos extremos dentro do conjunto de pontos inicial
