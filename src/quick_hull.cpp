@@ -79,18 +79,18 @@ typedef const std::pair<Point2D, Point2D> Line;
  *     ...
  * 
  * - Análise de complexidade:
- * - Das linhas X a X, as funções executadas são constantes. O(1)
- * - A linha X executa 1 vez, mas sua complexidade é linear em função da capacity enviada.
+ * - Das linhas 98 a 104, as funções executadas são constantes. O(1)
+ * - A linha 105 executa 1 vez, mas sua complexidade é linear em função da capacity enviada.
  * Portanto tem complexidade da ordem O(N)
- * - A linha X executa enquanto não existirem mais linha no arquivo, portanto
+ * - A linha 108 executa enquanto não existirem mais linha no arquivo, portanto
  * executa N + 1 vezes. O(N)
- * - A linha X a X dependem do tamanho das strings das linhas do arquivo de entrada.
+ * - A linha 110 a 112 dependem do tamanho das strings das linhas do arquivo de entrada.
  * Como o tamanho de cada coordenada de entrada dos pontos é restringido a 4 algarismos,
  * temos operações com complexidade constante, que executam N vezes por estarem em um loop. O(N)
- * - Na linha X, a criação desse objeto é de tempo constante, pois atribui duas variáveis somente.
+ * - Na linha 115, a criação desse objeto é de tempo constante, pois atribui duas variáveis somente.
  * Como ele é criado N vezes, temos então complexidade O(N).
- * - A linha X é executada uma vez para cada ponto. A operação de inserção no vetor é sempre constante pois
- * o espaço dínamico já foi priamente alocado na linha Y. O(N)
+ * - A linha 116 é executada uma vez para cada ponto. A operação de inserção no vetor é sempre constante pois
+ * o espaço dínamico já foi priamente alocado na linha 105. O(N)
  * 
  * Portanto a função é limitada pela complexidade linear O(N).
  */
@@ -124,7 +124,7 @@ std::vector<Point2D> read_input(std::string filename) {
  * Retorna uma nova Linha reversa ao que recebeu como parâmetro
  *
  * - Análise de complexidade:
- * - Na linha X é criado um novo objeto, que é de tempo constante. O(1)
+ * - Na linha 132 é criado um novo objeto, que é de tempo constante. O(1)
  * 
  * Portanto a função é limitada pela complexidade constante O(1).
  */
@@ -142,10 +142,10 @@ Line reverse_line(Line& line) {
  *     ...
  *
  * - Análise de complexidade:
- * - Na linha X é criado um objeto para escrever os dados, que é de tempo constante. O(1)
- * - A linha X será executada N + 1 vezes, dependendo do número de pontos recebidos dentro de hull,
+ * - Na linha 154 é criado um objeto para escrever os dados, que é de tempo constante. O(1)
+ * - A linha 155 será executada N + 1 vezes, dependendo do número de pontos recebidos dentro de hull,
  * logo, terá complexidade O(N).
- * - A linha X escreverá os dados no arquivo, logo será executada N vezes conforme o número de pontos.
+ * - A linha 156 escreverá os dados no arquivo, logo será executada N vezes conforme o número de pontos.
  * Terá complexidade O(N).
  * 
  * Portanto a função é limitada pela complexidade linear O(N).
@@ -162,11 +162,11 @@ void write_output(std::string filename, const std::list<Point2D>& hull) {
  * Retorna dois pontos que formam uma linha horizontal que atravessa o fecho inteiro
  *
  * - Análise de complexidade:
- * - Nas linhas X a X são criados objetos que tomam tempo constante. O(1)
- * - A linha X será executada N + 1 vezes, dependendo do número de pontos recebidos dentro de points,
+ * - Nas linhas 211, 212 e 223 são criados objetos que tomam tempo constante. O(1)
+ * - A linha 215 será executada N + 1 vezes, dependendo do número de pontos recebidos dentro de points,
  * logo, terá complexidade O(N).
- * - As linha X até X farão as comparações que dependem da quantidade de pontos de entrada, logo
- * terá complexidade O(N).
+ * - As linha 216 até 219 farão as comparações de custo O(1), mas como estão dentro de um loop, logo
+ * terão complexidade O(N).
  * 
  * Portanto a função é limitada pela complexidade linear O(N).
  * 
@@ -187,7 +187,7 @@ void write_output(std::string filename, const std::list<Point2D>& hull) {
  * E = não existe
  * 
  * Manutenção:
- * Ao fim da iteração do laço da linha X, percebe-se que o start e o end contém os
+ * Ao fim da iteração do laço, percebe-se que o start e o end contém os
  * os pontos com o x, respectivamente mais a esquerda e direita dos pontos já iterados(Pa),
  * pois somente se alteram se o ponto da iteração for mais a esquerda ou mais a direita que
  * start ou end.
@@ -232,7 +232,7 @@ Line get_extreme_points(const std::vector<Point2D>& points) {
  * 0(false) caso o p3 esteja a DIREITA ou seja COLINEAR da reta line
  * 
  * - Análise de complexidade:
- * - Nas linhas X a X são criados e calculados variáveis de tempo constante. O(1)
+ * - Nas linhas 250 a 252 são criados e calculados variáveis de tempo constante. O(1)
  * 
  * Portanto a função é limitada pela complexidade constante O(1).
  * 
@@ -260,7 +260,7 @@ bool left(Line& line, const Point2D& p3) {
  * Retorna a distancia entre uma reta (indicada por line) e um ponto (p3)
  *
  * - Análise de complexidade:
- * - Nas linhas X a X são criados e calculados variáveis de tempo constante. O(1)
+ * - Nas linhas 275 a 278 são criados e calculados variáveis de tempo constante. O(1)
  * 
  * Portanto a função é limitada pela complexidade constante O(1).
  * 
@@ -290,8 +290,8 @@ float get_point_distance_from_line(Line& line, const Point2D& p3) {
  * ...
  * 
  * - Análise de complexidade:
- * - A linha X executa N + 1 vezes, sendo N o tamanho da lista. Tem complexidade O(N).
- * - A linha X estão limitada pelo loop dos pontos. Portanto executa linearmente
+ * - A linha 300 executa N + 1 vezes, sendo N o tamanho da lista. Tem complexidade O(N).
+ * - A linha 301 estão limitada pelo loop dos pontos. Portanto executa linearmente
  * com base no tamanho da lista de pontos. Tem complexidade O(N).
  * 
  * A função é limitada pela complexidade linear O(N).
@@ -308,12 +308,12 @@ void print_points(const std::list<Point2D>& points) {
  * Retorna: o ponto mais longe da reta dentro do vetor de points
  * 
  * - Análise de complexidade:
- * - As linhas X e X executam em tempo constante. O(1)
- * - A linha X executa N + 1 vezes, sendo N o tamanho da lista. Tem complexidade O(N).
- * - A linha X chama uma função que é de complexidade constante O(1), porém 
+ * - As linhas 356 e 357 executam em tempo constante. O(1)
+ * - A linha 358 executa N + 1 vezes, sendo N o tamanho da lista. Tem complexidade O(N).
+ * - A linha 361 chama uma função que é de complexidade constante O(1), porém 
  * está dentro do loop com complexidade O(N).
- * - Da linha X até X, são executadas dentro do loop com complexidade O(N).
- * - A linha X que retorna o valor é de complexidade constante O(1).
+ * - Da linha 362 até 364, são executadas dentro do loop com complexidade O(N).
+ * - A linha 368 que retorna o valor é de complexidade constante O(1).
  * 
  * A função é limitada pela complexidade linear O(N).
  * 
@@ -332,7 +332,7 @@ void print_points(const std::list<Point2D>& points) {
  * LD = não existe
  * 
  * Manutenção:
- * Ao fim da iteração do laço da linha X, percebe-se que o ponto F contém
+ * Ao fim da iteração do laço, percebe-se que o ponto F contém
  * o ponto mais longe dentro do subvetor analisado e LD contém sua distância
  * a partir da reta line, porque o ponto e a distância só serão alterados caso
  * o ponto da iteração tenha distância da reta recebida maior que LD.
@@ -374,15 +374,15 @@ Point2D get_farthest_point(const std::vector<Point2D>& points, Line line) {
  * Retorna: os pontos a esquerda da reta recebida
  * 
  * - Análise de complexidade:
- * - A linhas X e X executam em tempo constante. O(1)
- * - A linha X executa 1 vez, mas sua complexidade é linear em função da capacity enviada.
+ * - A linhas 420 e 424 executam em tempo constante. O(1)
+ * - A linha 425 executa 1 vez, mas sua complexidade é linear em função da capacity enviada.
  * Portanto tem complexidade da ordem O(N)
- * - A linha X executa N + 1 vezes, sendo N o tamanho da lista. Tem complexidade O(N).
- * - A linha X chama uma função que é de complexidade constante O(1), como está dentro 
- * de um loop com complexidade O(N).
- * - A linha X que retorna o valor é de complexidade constante O(1).
+ * - A linha 427 executa N + 1 vezes, sendo N o tamanho da lista. Tem complexidade O(N).
+ * - As linha 429 a 431 chamam funções e fazem comparações de complexidade constante O(1),
+ * como estão dentro de um loop, tem com complexidade O(N).
+ * - A linha 434 que retorna o valor é de complexidade constante O(1).
  * 
- * A função é limitada pela complexidade linear O(N).
+ * A função é portanto limitada pela complexidade linear O(N).
  * 
  * Corretude:
  * 
@@ -398,7 +398,7 @@ Point2D get_farthest_point(const std::vector<Point2D>& points, Line line) {
  * NP = []
  * 
  * Manutenção:
- * Ao fim da iteração do laço da linha X, new_points conterá os pontos dentro de points 
+ * Ao fim da iteração do laço, new_points conterá os pontos dentro de points 
  * que estão a esquerda da reta line recebida, pois caso o ponto da iteração esteja a esquerda
  * da reta line, este será adicionado no vetor new_points.
  * 
@@ -451,12 +451,12 @@ std::vector<Point2D> get_left_points(const std::vector<Point2D>& points, Line li
  * 
  * Analisando a junção e separação da divisão e conquista, temos:
  * 
- * - A linha X realiza uma chamada de função de complexidade O(N).
- * - A linha X executa uma comparação de tempo constante O(1).
- * - A linha X realiza a chamada de uma função com complexidade O(N).
- * - As linhas X e X executam em tempo constante, pois apenas alocam variáveis. O(1)
- * - As linhas X e X realizam a chamada recursiva, que será melhor analisado posteriormente. O(N * lg(N))
- * - A linha X adiciona ao vetor, que é de custo constante O(1).
+ * - A linha 644 realiza uma chamada de função de complexidade O(N).
+ * - A linha 647 executa uma comparação de tempo constante O(1).
+ * - A linha 651 realiza a chamada de uma função com complexidade O(N).
+ * - As linhas 654 e 655 executam em tempo constante, pois apenas alocam variáveis. O(1)
+ * - As linhas 659 e 665 realizam a chamada recursiva, que será melhor analisado posteriormente. O(N * lg(N)) em média.
+ * - A linha 663 adiciona ao vetor, que é de custo constante O(1).
  * 
  * Portanto, como custo de cada recursão, temos complexidade O(N).
  * 
@@ -670,9 +670,9 @@ void quick_hull_rec(const std::vector<Point2D>& points, std::list<Point2D>& hull
  * Retorna uma nova lista contendo os pontos que determinam o fecho convexo, em ordem anti-horária.
  * 
  * - Análise de complexidade:
- * - A linha X executa a função get_extreme_points, que é de ordem linear, portanto O(N).
- * - As linha X e X realiza uma operação constante de inserção em lista encadeada, portanto O(1).
- * - As linha X e X realizam chamadas recursivas, que são analisadas melhor no método específico.
+ * - A linha 704 executa a função get_extreme_points, que é de ordem linear, portanto O(N).
+ * - As linha 710 e 718 realiza uma operação constante de inserção em lista encadeada, portanto O(1).
+ * - As linha 714 e 720 realizam chamadas recursivas, que são analisadas melhor no método específico.
  * Possuem complexidade no pior caso de O(N^2) e no melhor caso e caso médio de O(N*lgN)
  * 
  * Como a chamada recursiva é o maior custo da função, a complexidade dela será a mesma da chamada
@@ -731,12 +731,12 @@ std::list<Point2D> quick_hull(const std::vector<Point2D>& points) {
  * Retorna 0 em caso de execução com sucesso do programa.
  * 
  * - Análise de complexidade:
- * Linhas X a X fazem chamadas constantes, O(1)
- * Linhas X chama a função read_input, que é da ordem de O(N)
- * Linhas X e X executam operações de relógio constantes, O(1)
- * Linhas X chama a função quick_hull, que pode ser O(N * lgN) ou O(N^2)
- * Linhas X chama a função write_output, que é da ordem de O(N)
- * Linhas X a X executam operações e chamadas de função independentes
+ * Linhas 748 a 753 fazem chamadas constantes, O(1)
+ * Linhas 754 chama a função read_input, que é da ordem de O(N)
+ * Linhas 757 e 762 executam operações de relógio constantes, O(1)
+ * Linhas 759 chama a função quick_hull, que pode ser O(N * lgN) ou O(N^2)
+ * Linhas 764 chama a função write_output, que é da ordem de O(N)
+ * Linhas 767 a 770 executam operações e chamadas de função independentes
  * do tamanho do input e portanto são constantes também, O(1).
  * 
  * Pode-se concluir que a execução completa do programa está limitado pelo
